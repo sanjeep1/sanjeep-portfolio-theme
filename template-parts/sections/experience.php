@@ -7,41 +7,12 @@ $experience_subtitle = get_field('experience_subtitle');
 $experience_heading = get_field('experience_heading');
 $experiences = function_exists( 'get_field' ) ? get_field( 'experiences') : [];
 
-$default_experiences = [
-    [
-        'exp_year_start'  => '2023',
-        'exp_year_end'    => 'Present',
-        'exp_duration'    => '1 yr 6 mo',
-        'exp_role'        => 'Frontend Developer',
-        'exp_company'     => 'Freelance / Remote',
-        'exp_current'     => true,
-        'exp_description' => 'Building custom WordPress themes with ACF, creating React/Next.js web apps, and delivering pixel-perfect UI implementations for clients across Nepal and internationally.',
-        'exp_tags'        => [ ['exp_tag'=>'WordPress'], ['exp_tag'=>'React'], ['exp_tag'=>'Next.js'], ['exp_tag'=>'Tailwind CSS'], ['exp_tag'=>'ACF Pro'] ],
-    ],
-    [
-        'exp_year_start'  => '2022',
-        'exp_year_end'    => '2023',
-        'exp_duration'    => '1 yr',
-        'exp_role'        => 'Junior Frontend Developer',
-        'exp_company'     => 'Tech Company, Kathmandu',
-        'exp_current'     => false,
-        'exp_description' => 'Developed and maintained WordPress-based client websites, collaborated with designers on Figma-to-code handoffs, and implemented responsive layouts using Tailwind CSS.',
-        'exp_tags'        => [ ['exp_tag'=>'WordPress'], ['exp_tag'=>'PHP'], ['exp_tag'=>'Figma'], ['exp_tag'=>'JavaScript'] ],
-    ],
-    [
-        'exp_year_start'  => '2021',
-        'exp_year_end'    => '2022',
-        'exp_duration'    => '8 mo',
-        'exp_role'        => 'Web Development Intern',
-        'exp_company'     => 'Digital Agency, Kathmandu',
-        'exp_current'     => false,
-        'exp_description' => 'Assisted in building front-end components for client projects, learned WordPress theme development fundamentals, and contributed to UI/UX improvements on live sites.',
-        'exp_tags'        => [ ['exp_tag'=>'HTML/CSS'], ['exp_tag'=>'JavaScript'], ['exp_tag'=>'WordPress'], ['exp_tag'=>'Bootstrap'] ],
-    ],
-];
 
+$items = function_exists('get_field') ? get_field('experiences') : [];
 
-$items = ! empty( $experiences ) ? $experiences : $default_experiences;
+if (empty($items)) {
+    return;
+}
 ?>
 
 <section id="experience"
@@ -70,7 +41,7 @@ $items = ! empty( $experiences ) ? $experiences : $default_experiences;
             <?php foreach ( $items as $i => $exp ) :
                 $year_start  = $exp['exp_year_start']  ?? '';
                 $year_end    = $exp['exp_year_end']     ?? '';
-                $duration    = $exp['exp_duration']     ?? '';
+                // $duration    = $exp['exp_duration']     ?? '';
                 $role        = $exp['exp_role']         ?? '';
                 $company     = $exp['exp_company']      ?? '';
                 $is_current  = ! empty( $exp['exp_current'] );
@@ -78,10 +49,55 @@ $items = ! empty( $experiences ) ? $experiences : $default_experiences;
                 $tags        = $exp['exp_tags']         ?? [];
                 $delay       = $i * 100;
 
-                $year_label  = $year_start && $year_end
-                    ? esc_html( $year_start ) . ' — ' . esc_html( $year_end )
-                    : esc_html( $year_start );
+                $duration = '';
 
+                if (!empty($year_start)) {
+
+                    try {
+
+                        $start = DateTime::createFromFormat('F Y', trim($year_start));
+
+                        if ($start) {
+
+                            if ($is_current) {
+                                $end = new DateTime();
+                            } elseif (!empty($year_end)) {
+                                $end = DateTime::createFromFormat('F Y', trim($year_end));
+                            }
+
+                            if (!empty($end)) {
+
+                                $interval = $start->diff($end);
+
+                                $parts = [];
+
+                                if ($interval->y > 0) {
+                                    $parts[] = $interval->y . ' yr' . ($interval->y > 1 ? 's' : '');
+                                }
+
+                                if ($interval->m > 0) {
+                                    $parts[] = $interval->m . ' mo';
+                                }
+
+                                if (empty($parts)) {
+                                    $parts[] = 'Less than 1 mo';
+                                }
+
+                                $duration = implode(' ', $parts);
+                            }
+                        }
+
+                    } catch (Exception $e) {
+                        $duration = '';
+                    }
+                }
+                
+                $year_label = '';
+
+                if ($year_start) {
+                    $year_label = esc_html($year_start) . ' — ' . ($is_current ? 'Present' : esc_html($year_end));
+                }
+                
                 $item_classes = 'tl-item reveal';
                 if ( $is_current ) $item_classes .= ' tl-item--current';
             ?>
